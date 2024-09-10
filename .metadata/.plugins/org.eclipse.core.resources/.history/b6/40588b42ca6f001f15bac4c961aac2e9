@@ -1,0 +1,175 @@
+package Abela1;
+
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
+class Livro {
+    String titulo;
+    String autor;
+    int ano;
+
+    public Livro(String titulo, String autor, int ano) {
+        this.titulo = titulo;
+        this.autor = autor;
+        this.ano = ano;
+    }
+
+    @Override
+    public String toString() {
+        return "Título: " + titulo + ", Autor: " + autor + ", Ano: " + ano;
+    }
+}
+
+public class Application {
+    private Livro[] livros;
+    private int count;
+    private JTextArea textArea;
+
+    public Application(int capacidade) {
+        livros = new Livro[capacidade];
+        count = 0;
+    }
+
+    public void adicionarLivro(String titulo, String autor, int ano) {
+        if (count < livros.length) {
+            livros[count] = new Livro(titulo, autor, ano);
+            count++;
+            atualizarLista();
+        } else {
+            JOptionPane.showMessageDialog(null, "Capacidade máxima atingida!");
+        }
+    }
+
+    public void listarLivros() {
+        textArea.setText("");
+        if (count == 0) {
+            textArea.append("Nenhum livro no acervo.\n");
+            return;
+        }
+        for (int i = 0; i < count; i++) {
+            textArea.append(livros[i].toString() + "\n");
+        }
+    }
+
+    public void ordenarPorTitulo() {
+        for (int i = 0; i < count - 1; i++) {
+            for (int j = 0; j < count - i - 1; j++) {
+                if (livros[j].titulo.compareToIgnoreCase(livros[j + 1].titulo) > 0) {
+                    Livro temp = livros[j];
+                    livros[j] = livros[j + 1];
+                    livros[j + 1] = temp;
+                }
+            }
+        }
+        listarLivros();
+    }
+
+    public void ordenarPorAutor() {
+        quickSortAutor(0, count - 1);
+        listarLivros();
+    }
+
+    private void quickSortAutor(int inicio, int fim) {
+        if (inicio < fim) {
+            int posicaoPivo = partition(inicio, fim);
+            quickSortAutor(inicio, posicaoPivo - 1);
+            quickSortAutor(posicaoPivo + 1, fim);
+        }
+    }
+
+    private int partition(int inicio, int fim) {
+        Livro pivo = livros[fim];
+        int i = inicio - 1;
+        for (int j = inicio; j < fim; j++) {
+            if (livros[j].autor.compareToIgnoreCase(pivo.autor) < 0) {
+                i++;
+                Livro temp = livros[i];
+                livros[i] = livros[j];
+                livros[j] = temp;
+            }
+        }
+        Livro temp = livros[i + 1];
+        livros[i + 1] = livros[fim];
+        livros[fim] = temp;
+        return i + 1;
+    }
+
+    private void atualizarLista() {
+        listarLivros();
+    }
+
+    public void criarInterface() {
+        JFrame frame = new JFrame("Sistema de Livros");
+        frame.setSize(720, 480);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 2, 10, 10));
+
+        JLabel tituloLabel = new JLabel("Título:");
+        JTextField tituloField = new JTextField(20);
+        JLabel autorLabel = new JLabel("Autor:");
+        JTextField autorField = new JTextField(20);
+        JLabel anoLabel = new JLabel("Ano de Publicação:");
+        JTextField anoField = new JTextField(5);
+
+        JButton adicionarButton = new JButton("Adicionar Livro");
+        adicionarButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String titulo = tituloField.getText();
+                String autor = autorField.getText();
+                
+                // Verifica se o ano é um número válido
+                try {
+                    int ano = Integer.parseInt(anoField.getText());
+                    adicionarLivro(titulo, autor, ano);
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(null, "Por favor, insira um ano de publicação válido (número inteiro).");
+                }
+            }
+        });
+
+        JButton ordenarTituloButton = new JButton("Ordenar por Título");
+        ordenarTituloButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ordenarPorTitulo();
+            }
+        });
+
+        JButton ordenarAutorButton = new JButton("Ordenar por Autor");
+        ordenarAutorButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                ordenarPorAutor();
+            }
+        });
+
+        textArea = new JTextArea(10, 40);
+        textArea.setEditable(false);
+        JScrollPane scrollPane = new JScrollPane(textArea);
+
+        panel.add(tituloLabel);
+        panel.add(tituloField);
+        panel.add(autorLabel);
+        panel.add(autorField);
+        panel.add(anoLabel);
+        panel.add(anoField);
+        panel.add(adicionarButton);
+        panel.add(ordenarTituloButton);
+        panel.add(ordenarAutorButton);
+
+        frame.add(panel, BorderLayout.NORTH);
+        frame.add(scrollPane, BorderLayout.CENTER);
+
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        Application app = new Application(100); // capacidade máxima de 100 livros
+        app.criarInterface();
+    }
+}
